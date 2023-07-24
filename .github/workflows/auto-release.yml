@@ -51,13 +51,14 @@ jobs:
           updated_contributors_section=$(echo "$contributors_section" | awk '{gsub(/\[@([-a-zA-Z0-9_]+)](https:\/\/[^)]*)/, "- @\\1"); print}')
         
           # Replace the original contributors section with the updated one
-          awk -v start_line="$CONTRIBUTORS_LINE" -v end_line="$END_LINE" -v updated_section="$updated_contributors_section" 'NR==FNR {if (NR == start_line) { print updated_section; skip = 1; } else if (NR == end_line) { skip = 0; next } if (!skip) print; next}' extracted_notes.txt 
+          awk -v start_line="$CONTRIBUTORS_LINE" -v end_line="$END_LINE" -v updated_section="$updated_contributors_section" 'NR==FNR {if (NR == start_line) { print updated_section; skip = 1; } else if (NR == end_line) { skip = 0; next } if (!skip) print; next}' extracted_notes.txt  extracted_notes.txt > updated_notes.txt
+          echo $(cat updated_notes.txt)
 
       - name: Format release notes for description
         id: format_notes
         run: |
           # Replace newline characters with appropriate line breaks
-          FORMATTED_NOTES=$(sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' extracted_notes.txt)
+          FORMATTED_NOTES=$(sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' updated_notes.txt)
           echo "Formatted release notes: $FORMATTED_NOTES"
           echo "formatted_notes=$FORMATTED_NOTES" >> $GITHUB_OUTPUT
 
