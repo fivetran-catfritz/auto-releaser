@@ -30,18 +30,22 @@ jobs:
         id: extract_notes
         run: |
           # Use awk to extract the line numbers of the start and end headings
-          start_line=$(awk "/^# .*${{ steps.new_version.outputs.version }}/{print NR+1; exit}" CHANGELOG.md)
-          end_line=$(awk "/^# .*${{ steps.current_version.outputs.version }}/{print NR-1; exit}" CHANGELOG.md)
+          START_LINE=$(awk "/^# .*${{ steps.new_version.outputs.version }}/{print NR+1; exit}" CHANGELOG.md)
+          END_LINE=$(awk "/^# .*${{ steps.current_version.outputs.version }}/{print NR-1; exit}" CHANGELOG.md)
           # Extract the release notes between the line numbers
-          awk -v start_line="$start_line" -v end_line="$end_line" 'NR >= start_line && NR <= end_line' CHANGELOG.md > extracted_notes.txt
+          awk -v start_line="$START_LINE" -v end_line="$END_LINE" 'NR >= start_line && NR <= end_line' CHANGELOG.md > extracted_notes.txt
+          echo "end_line=$END_LINE" >> $GITHUB_OUTPUT
 
       - name: Remove hyperlinks from first contributor link
         id: remove_link
         run: |
           # Read the extracted release notes
           NOTE=$(cat extracted_notes.txt)
+          
           # Find the first occurrence of the "Contributors" section
-          CONTRIBUTORS_START=$(echo "$NOTE" | grep -n "Contributors" | cut -d: -f1)
+          CONTRIBUTORS_START=$(awk "/^## Contributors.*/{print NR+1; exit}" extracted_notes.txt)
+          CONTRIBUTORS+END=${{ steps.extract_notes.outputs.end_line }}
+
           # Find the first occurrence of a hyperlink in the "Contributors" section
           LINK_START=$(echo "$NOTE" | sed -n "$CONTRIBUTORS_START,$CONTRIBUTORS_START+1p" | grep -o 'https://github.com/[^ ]*')
           # Remove the hyperlink from the "Contributors" section
