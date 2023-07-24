@@ -48,7 +48,7 @@ jobs:
         run: |
           # Remove hyperlinks from @mentions
           formatted_notes=${{ steps.format_notes.outputs.formatted_notes }}
-          CLEANED_NOTES=$(awk '{ gsub(/\[@([[:alnum:]_-]+)]\([^)]+\)/, "@\\1") }' <<< "$formatted_notes")
+          CLEANED_NOTES=$(echo "$formatted_notes" | sed 's/\[@\([[:alnum:]_-]*\)\](\([^)]*\))/@\1/g')
           echo "Formatted release notes: $CLEANED_NOTES"
           echo "cleaned_notes=$CLEANED_NOTES" >> $GITHUB_OUTPUT
 
