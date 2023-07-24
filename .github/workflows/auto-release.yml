@@ -39,7 +39,7 @@ jobs:
         id: remove_link
         run: |
           # Remove the link and brackets from the @ mention
-          sed 's/](https://github.com/.*)//g' extracted_notes.txt) > extracted_notes.txt
+          sed 's/](https://github.com/.*)//g' extracted_notes.txt > extracted_notes.txt
 
       - name: Format release notes for description
         id: format_notes
