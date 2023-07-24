@@ -34,13 +34,14 @@ jobs:
           END_LINE=$(awk "/^# .*${{ steps.current_version.outputs.version }}/{print NR-1; exit}" CHANGELOG.md)
           # Extract the release notes between the line numbers
           awk -v start_line="$START_LINE" -v end_line="$END_LINE" 'NR >= start_line && NR <= end_line' CHANGELOG.md > extracted_notes.txt
+          cat extracted_notes.txt
 
       - name: Remove hyperlinks from contributors
         id: remove_link
         run: |
           # Check if the "Contributors" section exists in the extracted notes
           awk '{ gsub(/\[(@.*?)\]\(.*?\)/, "") }' extracted_notes.txt > formatted_notes.txt
-          echo "cat formatted_notes.txt"
+          cat formatted_notes.txt
 
       - name: Format release notes for description
         id: format_notes
