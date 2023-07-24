@@ -48,11 +48,10 @@ jobs:
       - name: Modify Contributors
         id: modify_contributors
         run: |
-          # Update the contributor lines in the formatted_notes
+          # Update the contributor lines in the formatted_notes using sed
           FORMATTED_NOTES="${{ steps.format_notes.outputs.formatted_notes }}"
-          CONTRIBUTORS_SECTION=$(echo "$formatted_notes" | awk '/## Contributors/{flag=1; next} /#/{flag=0} flag')
-          MODIFIED_CONTRIBUTORS_SECTION=$(echo "$contributors_section" | awk '{gsub(/\[@/,"- @"); gsub(/\]\(https/,""); print}')
-          UPDATED_FORMATTED_NOTES=$(echo "$formatted_notes" | awk '/## Contributors/{print; print "'"$MODIFIED_CONTRIBUTORS_SECTION"'"; next} {print}')
+          MODIFIED_CONTRIBUTORS_SECTION=$(echo "$FORMATTED_NOTES" | sed -n '/## Contributors/{:start; p; n; /##/q; s/\[@\([-a-zA-Z0-9_]\+\)](https:\/\/[^)]*)/- @\1/p; b start}')
+          UPDATED_FORMATTED_NOTES=$(echo "$FORMATTED_NOTES" | sed "/## Contributors/ {n; s/.*/$MODIFIED_CONTRIBUTORS_SECTION/; }")
           echo "updated_formatted_notes=$UPDATED_FORMATTED_NOTES"  >> $GITHUB_OUTPUT
 
       - name: Get Repository Name
