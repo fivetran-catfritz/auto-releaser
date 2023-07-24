@@ -34,25 +34,14 @@ jobs:
           END_LINE=$(awk "/^# .*${{ steps.current_version.outputs.version }}/{print NR-1; exit}" CHANGELOG.md)
           # Extract the release notes between the line numbers
           awk -v start_line="$START_LINE" -v end_line="$END_LINE" 'NR >= start_line && NR <= end_line' CHANGELOG.md > extracted_notes.txt
-          echo "end_line=$END_LINE" >> $GITHUB_OUTPUT
 
       - name: Remove hyperlinks from first contributor link
         id: remove_link
         run: |
-          # Read the extracted release notes
-          NOTE=$(cat extracted_notes.txt)
-
-          # Find the first occurrence of the "Contributors" section
-          CONTRIBUTORS_START=$(awk "/^## Contributors.*/{print NR+1; exit}" extracted_notes.txt)
-          CONTRIBUTORS_END=${{ steps.extract_notes.outputs.end_line }}
-
-          # Find the first occurrence of a hyperlink in the "Contributors" section
-          LINK_START=$(echo "$NOTE" | sed -n "$CONTRIBUTORS_START,$CONTRIBUTORS_END" | grep -o 'https://github.com/[^ ]*')
-          # Remove the hyperlink from the "Contributors" section
-          NOTE=$(echo "$NOTE" | sed 's/+//g')
-
-          # Save the updated release notes
-          echo $NOTE > extracted_notes.txt
+          # Remove the link and brackets from the @ mention
+          CLEANED_NOTES=$(sed 's/@\w+\S*//g' extracted_notes.txt)
+          echo "Cleaned release notes: $CLEANED_NOTES"
+          echo $CLEANED_NOTES > extracted_notes.txt
 
       - name: Format release notes for description
         id: format_notes
