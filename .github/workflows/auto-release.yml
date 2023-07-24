@@ -35,13 +35,6 @@ jobs:
           # Extract the release notes between the line numbers
           awk -v start_line="$START_LINE" -v end_line="$END_LINE" 'NR >= start_line && NR <= end_line' CHANGELOG.md > extracted_notes.txt
 
-      - name: Remove hyperlinks from contributors
-        id: remove_link
-        run: |
-          # Check if the "Contributors" section exists in the extracted notes
-          awk -i inplace '{ gsub(/\[(@.*?)\]\(.*?\)/, "") }' extracted_notes.txt
-          cat extracted_notes.txt
-
       - name: Format release notes for description
         id: format_notes
         run: |
@@ -49,6 +42,15 @@ jobs:
           FORMATTED_NOTES=$(sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' extracted_notes.txt)
           echo "Formatted release notes: $FORMATTED_NOTES"
           echo "formatted_notes=$FORMATTED_NOTES" >> $GITHUB_OUTPUT
+
+      - name: Remove hyperlinks from contributors
+        id: remove_link
+        run: |
+          # Remove hyperlinks from @mentions
+          formatted_notes="${{ steps.format_notes.outputs.formatted_notes }}"
+          CLEANED_NOTES=$(awk '{ gsub(/\[(@.*?)\]\(.*?\)/, "") }' <<< "$formatted_notes")
+          echo "Formatted release notes: $CLEANED_NOTES"
+          echo "cleaned_notes=$CLEANED_NOTES" >> $GITHUB_OUTPUT
 
       - name: Get Repository Name
         id: repo_name
@@ -63,7 +65,7 @@ jobs:
         env:
           version: ${{ steps.new_version.outputs.version }}
           title: ${{ steps.new_version.outputs.version }} ${{ steps.repo_name.outputs.repo_name }}
-          description: ${{ steps.format_notes.outputs.formatted_notes }}
+          description: ${{ steps.format_notes.outputs.cleaned_notes }}
           branch: 'main'
           draft: 'true'
           prerelease: 'false'
