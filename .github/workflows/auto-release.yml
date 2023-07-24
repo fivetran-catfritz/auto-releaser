@@ -38,19 +38,23 @@ jobs:
       - name: Format release notes for description
         id: format_notes
         run: |
+          # Function to remove hyperlinks from the "Contributors" section
+          remove_contributor_links() {
+            awk '
+              /^## Contributors$/,/^## / {
+                gsub(/\[@([-a-zA-Z0-9_]+)](https:\/\/[^)]*)/, "- @\\1")
+                print
+              }
+            '
+          }
+
           # Check if the "Contributors" section exists in the extracted notes
           if grep -q "^## Contributors$" extracted_notes.txt; then
-            # If the section exists, remove hyperlinks in the "Contributors" section
-            awk '
-              /^## Contributors$/,/^# / {
-                gsub(/\[@([-a-zA-Z0-9_]+)](https:\/\/[^)]*)/, "- @\\1")
-              }
-              { print }
-            ' extracted_notes.txt > formatted_notes.txt
+            # If the section exists, remove hyperlinks in the "Contributors" section and save to formatted_notes.txt
+            remove_contributor_links extracted_notes.txt > formatted_notes.txt
           else
             # If the section doesn't exist, keep the notes unchanged
             cp extracted_notes.txt formatted_notes.txt
-            echo "didn't find contributors"
           fi
 
           # Replace newline characters with appropriate line breaks
@@ -58,19 +62,19 @@ jobs:
           echo "Formatted release notes: $FORMATTED_NOTES"
           echo "formatted_notes=$FORMATTED_NOTES" >> $GITHUB_OUTPUT
 
-      - name: Get Repository Name
-        id: repo_name
-        run: |
-          # Use basename to get the repository name without the owner
-          REPO_NAME=$(basename "${{ github.repository }}")
-          echo "Repository Name: $REPO_NAME"
-          echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
+      # - name: Get Repository Name
+      #   id: repo_name
+      #   run: |
+      #     # Use basename to get the repository name without the owner
+      #     REPO_NAME=$(basename "${{ github.repository }}")
+      #     echo "Repository Name: $REPO_NAME"
+      #     echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
 
       - name: Create the release
         id: create_release
         env:
           version: ${{ steps.new_version.outputs.version }}
-          title: ${{ steps.new_version.outputs.version }} ${{ steps.repo_name.outputs.repo_name }}
+          title: ${{ steps.new_version.outputs.version }} $(basename "${{ github.repository }}")
           description: ${{ steps.format_notes.outputs.formatted_notes }}
           branch: 'main'
           draft: 'true'
