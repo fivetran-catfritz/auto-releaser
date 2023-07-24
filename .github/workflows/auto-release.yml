@@ -47,7 +47,7 @@ jobs:
           CONTRIBUTORS_END=${{ steps.extract_notes.outputs.end_line }}
 
           # Find the first occurrence of a hyperlink in the "Contributors" section
-          LINK_START=$(echo "$NOTE" | sed -n "$CONTRIBUTORS_START,$CONTRIBUTORS_START+1p" | grep -o 'https://github.com/[^ ]*')
+          LINK_START=$(echo "$NOTE" | sed -n "$CONTRIBUTORS_START,$CONTRIBUTORS_END" | grep -o 'https://github.com/[^ ]*')
           # Remove the hyperlink from the "Contributors" section
           NOTE=$(echo "$NOTE" | sed 's/+//')
 
