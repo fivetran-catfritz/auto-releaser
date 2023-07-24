@@ -53,7 +53,7 @@ jobs:
           echo "Repository Name: $REPO_NAME"
           echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
 
-      - name: Create Release
+      - name: Create the release
         id: create_release
         env:
           version: ${{ steps.new_version.outputs.version }}
