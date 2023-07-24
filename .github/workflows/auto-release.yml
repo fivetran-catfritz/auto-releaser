@@ -32,29 +32,22 @@ jobs:
           # Use awk to extract the line numbers of the start and end headings
           START_LINE=$(awk "/^# .*${{ steps.new_version.outputs.version }}/{print NR+1; exit}" CHANGELOG.md)
           END_LINE=$(awk "/^# .*${{ steps.current_version.outputs.version }}/{print NR-1; exit}" CHANGELOG.md)
+          echo "start: $START_LINE"
+          echo "end: $END_LINE"
+
           # Extract the release notes between the line numbers
-          awk -v START_LINE="$START_LINE" -v END_LINE="$END_LINE" 'NR >= START_LINE && NR <= END_LINE' CHANGELOG.md > extracted_notes.txt
+          awk -v start_line="$START_LINE" -v end_line="$END_LINE" 'NR >= START_LINE && NR <= END_LINE' CHANGELOG.md > extracted_notes.txt
+
+          # Update the contributors section in the extracted notes using sed
+          sed -i 's/\[@\([-a-zA-Z0-9_]\+\)](https:\/\/[^)]*)/- @\1/g' extracted_notes.txt
 
       - name: Format release notes for description
         id: format_notes
         run: |
-          NOTES=$(extracted_notes.txt)
-          MODIFIED_CONTRIBUTORS_SECTION=$(echo "$NOTES" | sed -n '/## Contributors/{:start; p; n; /##/q; s/\[@\([-a-zA-Z0-9_]\+\)](https:\/\/[^)]*)/- @\1/p; b start}')
-          UPDATED_NOTES=$(echo "$NOTES" | sed "/## Contributors/ {n; s/.*/$MODIFIED_CONTRIBUTORS_SECTION/; }")
-
           # Replace newline characters with appropriate line breaks
-          FORMATTED_NOTES=$(sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' $UPDATED_NOTES)
+          FORMATTED_NOTES=$(sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' extracted_notes.txt)
           echo "Formatted release notes: $FORMATTED_NOTES"
           echo "formatted_notes=$FORMATTED_NOTES" >> $GITHUB_OUTPUT
-
-      # - name: Modify Contributors
-      #   id: modify_contributors
-      #   run: |
-      #     # Update the contributor lines in the formatted_notes using sed
-      #     FORMATTED_NOTES="${{ steps.format_notes.outputs.formatted_notes }}"
-      #     MODIFIED_CONTRIBUTORS_SECTION=$(echo "$FORMATTED_NOTES" | sed -n '/## Contributors/{:start; p; n; /##/q; s/\[@\([-a-zA-Z0-9_]\+\)](https:\/\/[^)]*)/- @\1/p; b start}')
-      #     UPDATED_FORMATTED_NOTES=$(echo "$FORMATTED_NOTES" | sed "/## Contributors/ {n; s/.*/$MODIFIED_CONTRIBUTORS_SECTION/; }")
-      #     echo "updated_formatted_notes=$UPDATED_FORMATTED_NOTES"  >> $GITHUB_OUTPUT
 
       - name: Get Repository Name
         id: repo_name
@@ -69,7 +62,7 @@ jobs:
         env:
           version: ${{ steps.new_version.outputs.version }}
           title: ${{ steps.new_version.outputs.version }} ${{ steps.repo_name.outputs.repo_name }}
-          description: ${{ steps.format_notes.outputs.formatted_notes }}
+          description: ${{ steps.format_notes.outputs.updated_formatted_notes }}
           branch: 'main'
           draft: 'true'
           prerelease: 'false'
