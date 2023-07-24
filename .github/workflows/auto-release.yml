@@ -41,13 +41,7 @@ jobs:
           # Check if the "Contributors" section exists in the extracted notes
           if grep -q "^## Contributors$" extracted_notes.txt; then
             # If the section exists, remove hyperlinks in the "Contributors" section and save to formatted_notes.txt
-            gawk '
-              /^## Contributors$/ { remove_links = 1; next }
-              remove_links {
-                gsub(/\[@([-a-zA-Z0-9_]+)](https:\/\/[^)]*)/, "- @\\1")
-                print
-              }
-            ' extracted_notes.txt > formatted_notes.txt
+            sed -n '/^## Contributors$/,/^## /p' extracted_notes.txt | sed 's/\[@\([-a-zA-Z0-9_]\+\)](https:\/\/[^)]\+\)/- @\1/' > formatted_notes.txt
 
             # Debug: Display the contents of formatted_notes.txt
             echo "Formatted notes content:"
@@ -56,6 +50,11 @@ jobs:
             # If the section doesn't exist, keep the notes unchanged
             cp extracted_notes.txt formatted_notes.txt
           fi
+
+          # Replace newline characters with appropriate line breaks for the entire formatted_notes.txt
+          FORMATTED_NOTES=$(awk '{ printf "%s\\n", $0 }' formatted_notes.txt)
+          echo "Formatted release notes: $FORMATTED_NOTES"
+          echo "formatted_notes=$FORMATTED_NOTES" >> $GITHUB_OUTPUT
 
           # Replace newline characters with appropriate line breaks
           FORMATTED_NOTES=$(sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' formatted_notes.txt)
