@@ -41,17 +41,18 @@ jobs:
           # Function to remove hyperlinks from the "Contributors" section
           remove_contributor_links() {
             awk '
-              /^## Contributors$/,/^# .* / {
+              /^## Contributors$/ { remove_links = 1; next }
+              remove_links {
                 gsub(/\[@([-a-zA-Z0-9_]+)](https:\/\/[^)]*)/, "- @\\1")
+                print
               }
-              { print }
-            ' extracted_notes.txt
+            '
           }
 
           # Check if the "Contributors" section exists in the extracted notes
           if grep -q "^## Contributors$" extracted_notes.txt; then
             # If the section exists, remove hyperlinks in the "Contributors" section and save to formatted_notes.txt
-            remove_contributor_links > formatted_notes.txt
+            remove_contributor_links extracted_notes.txt > formatted_notes.txt
           else
             # If the section doesn't exist, keep the notes unchanged
             cp extracted_notes.txt formatted_notes.txt
