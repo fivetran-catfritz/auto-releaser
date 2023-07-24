@@ -52,7 +52,7 @@ jobs:
         
           # Replace the original contributors section with the updated one
           awk -v start_line="$CONTRIBUTORS_LINE" -v end_line="$END_LINE" -v updated_section="$updated_contributors_section" 'NR==FNR {if (NR == start_line) { print updated_section; skip = 1; } else if (NR == end_line) { skip = 0; next } if (!skip) print; next}' extracted_notes.txt  extracted_notes.txt > updated_notes.txt
-          echo $(cat updated_notes.txt)
+          echo "contributors_section: $contributors_section"
 
       - name: Format release notes for description
         id: format_notes
