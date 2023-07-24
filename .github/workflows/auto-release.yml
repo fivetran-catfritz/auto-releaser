@@ -62,17 +62,19 @@ jobs:
           branch: 'main'
           draft: 'true'
           prerelease: 'false'
-          compare_url: "https://github.com/${{ github.repository }}/compare/${{ steps.current_version.outputs.version }}...${{ steps.new_version.outputs.version }}"
           repo: ${{ github.repository }}
           token: ${{ secrets.GH_TOKEN }}
+          compare_url: "https://github.com/$repo/compare/${{ steps.current_version.outputs.version }}...$version"
         run: |
           # Concatenate the link to the full changelog with the release description
-          description="${{ steps.format_notes.outputs.formatted_notes }}\n\n**Full Changelog**: ${compare_url}"
+          description="${description}\n\n**Full Changelog**: ${compare_url}"
+
           # Create the release draft using the GitHub API
           RESPONSE=$(curl -X POST \
             -H "Authorization: token $token" \
             -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/$repo/releases" \
             -d "{\"tag_name\": \"$version\",\"target_commitish\": \"$branch\",\"name\": \"$title\",\"body\": \"$description\",\"draft\": $draft,\"prerelease\": $prerelease}")
+            
           # Print the response for verification
           echo "Response: $RESPONSE"
