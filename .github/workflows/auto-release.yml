@@ -53,18 +53,6 @@ jobs:
           echo "Repository Name: $REPO_NAME"
           echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
 
-      # - name: Create Release
-      #   uses: fivetran-catfritz/release-creator@v0.1.0
-      #   with:
-      #     GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-      #     version: ${{ steps.new_version.outputs.version }}
-      #     repo: ${{ github.repository }}
-      #     branch: 'main'
-      #     draft: 'true'
-      #     prerelease: 'false'
-      #     title: ${{ steps.new_version.outputs.version }} ${{ steps.repo_name.outputs.repo_name }}
-      #     description: ${{ steps.format_notes.outputs.formatted_notes }}
-
       - name: Create Release
         id: create_release
         env:
