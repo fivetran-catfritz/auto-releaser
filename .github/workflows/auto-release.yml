@@ -41,10 +41,10 @@ jobs:
         run: |
           # Read the extracted release notes
           NOTE=$(cat extracted_notes.txt)
-          
+
           # Find the first occurrence of the "Contributors" section
           CONTRIBUTORS_START=$(awk "/^## Contributors.*/{print NR+1; exit}" extracted_notes.txt)
-          CONTRIBUTORS+END=${{ steps.extract_notes.outputs.end_line }}
+          CONTRIBUTORS_END=${{ steps.extract_notes.outputs.end_line }}
 
           # Find the first occurrence of a hyperlink in the "Contributors" section
           LINK_START=$(echo "$NOTE" | sed -n "$CONTRIBUTORS_START,$CONTRIBUTORS_START+1p" | grep -o 'https://github.com/[^ ]*')
