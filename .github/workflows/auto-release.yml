@@ -45,6 +45,16 @@ jobs:
           echo "Formatted release notes: $FORMATTED_NOTES"
           echo "formatted_notes=$FORMATTED_NOTES" >> $GITHUB_OUTPUT
 
+      - name: Modify Contributors Section
+        id: modify_contributors
+        run: |
+          # Update the contributor lines in the formatted_notes
+          formatted_notes="${{ steps.format_notes.outputs.formatted_notes }}"
+          contributors_section=$(echo "$formatted_notes" | awk '/## Contributors/{flag=1; next} /##/{flag=0} flag')
+          modified_contributors_section=$(echo "$contributors_section" | awk '{gsub(/\[@/,"- @"); gsub(/\]\(https/,""); print}')
+          updated_formatted_notes=$(echo "$formatted_notes" | awk '/## Contributors/{print; print "'"$modified_contributors_section"'"; next} {print}')
+          echo "::set-output name=modified_notes::$updated_formatted_notes"
+
       - name: Get Repository Name
         id: repo_name
         run: |
@@ -58,7 +68,7 @@ jobs:
         env:
           version: ${{ steps.new_version.outputs.version }}
           title: ${{ steps.new_version.outputs.version }} ${{ steps.repo_name.outputs.repo_name }}
-          description: ${{ steps.format_notes.outputs.formatted_notes }}
+          description: ${{ steps.format_notes.outputs.updated_formatted_notes }}
           branch: 'main'
           draft: 'true'
           prerelease: 'false'
