@@ -43,8 +43,8 @@ jobs:
             awk '
               /^## Contributors$/,/^## / {
                 gsub(/\[@([-a-zA-Z0-9_]+)](https:\/\/[^)]*)/, "- @\\1")
-                print
               }
+              { print }
             ' extracted_notes.txt
           }
 
