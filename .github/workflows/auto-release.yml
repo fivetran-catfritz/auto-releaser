@@ -64,7 +64,7 @@ jobs:
           prerelease: 'false'
           repo: ${{ github.repository }}
           token: ${{ secrets.GH_TOKEN }}
-          compare_url: "https://github.com/${repo}/compare/${{ steps.current_version.outputs.version }}...${version}"
+          compare_url: "https://github.com/${{ github.repository }}/compare/${{ steps.current_version.outputs.version }}...${{ steps.new_version.outputs.version }}"
         run: |
           # Concatenate the link to the full changelog with the release description
           description="${description}\n\n**Full Changelog**: ${compare_url}"
