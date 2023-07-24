@@ -41,7 +41,7 @@ jobs:
           # Function to remove hyperlinks from the "Contributors" section
           remove_contributor_links() {
             awk '
-              /^## Contributors$/,/^## / {
+              /^## Contributors$/,/^# .* / {
                 gsub(/\[@([-a-zA-Z0-9_]+)](https:\/\/[^)]*)/, "- @\\1")
               }
               { print }
