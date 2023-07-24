@@ -50,6 +50,7 @@ jobs:
           else
             # If the section doesn't exist, keep the notes unchanged
             cp extracted_notes.txt formatted_notes.txt
+            echo "didn't find contributors"
           fi
 
           # Replace newline characters with appropriate line breaks
