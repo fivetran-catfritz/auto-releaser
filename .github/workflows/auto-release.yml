@@ -39,18 +39,18 @@ jobs:
         id: format_notes
         run: |
           # Replace newline characters with appropriate line breaks
-          FORMATTED_NOTES=$(sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' extracted_notes.txt)
+          FORMATTED_NOTES=$(sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' extracted_notes.txt | sed 's/\[@\([[:alnum:]_-]*\)\](\([^)]*\))/@\1/g')
           echo "Formatted release notes: $FORMATTED_NOTES"
           echo "formatted_notes=$FORMATTED_NOTES" >> $GITHUB_OUTPUT
 
-      - name: Remove hyperlinks from contributors
-        id: remove_link
-        run: |
-          # Remove hyperlinks from @mentions
-          formatted_notes=${{ steps.format_notes.outputs.formatted_notes }}
-          CLEANED_NOTES=$(echo "$formatted_notes" | sed 's/\[@\([[:alnum:]_-]*\)\](\([^)]*\))/@\1/g')
-          echo "Formatted release notes: $CLEANED_NOTES"
-          echo "cleaned_notes=$CLEANED_NOTES" >> $GITHUB_OUTPUT
+      # - name: Remove hyperlinks from contributors
+      #   id: remove_link
+      #   run: |
+      #     # Remove hyperlinks from @mentions
+      #     formatted_notes=${{ steps.format_notes.outputs.formatted_notes }}
+      #     CLEANED_NOTES=$(echo "$formatted_notes" | sed 's/\[@\([[:alnum:]_-]*\)\](\([^)]*\))/@\1/g')
+      #     echo "Formatted release notes: $CLEANED_NOTES"
+      #     echo "cleaned_notes=$CLEANED_NOTES" >> $GITHUB_OUTPUT
 
       - name: Get Repository Name
         id: repo_name
@@ -65,7 +65,7 @@ jobs:
         env:
           version: ${{ steps.new_version.outputs.version }}
           title: ${{ steps.new_version.outputs.version }} ${{ steps.repo_name.outputs.repo_name }}
-          description: ${{ steps.format_notes.outputs.cleaned_notes }}
+          description: ${{ steps.format_notes.outputs.formatted_notes }}
           branch: 'main'
           draft: 'true'
           prerelease: 'false'
