@@ -35,31 +35,34 @@ jobs:
 
           # Extract the release notes between the line numbers
           awk -v start_line="$START_LINE" -v end_line="$END_LINE" 'NR >= START_LINE && NR <= END_LINE' CHANGELOG.md > extracted_notes.txt
+          echo "end_line=$END_LINE" >> $GITHUB_OUTPUT
 
       - name: Update Contributors Section
         id: update_contributors
         run: |
           # Update the contributors section in extracted notes using awk
-          awk '
-            /## Contributors/ { in_contributors_section = 1 }
-            in_contributors_section {
-              gsub(/\[@([-a-zA-Z0-9_]+)](https:\/\/[^)]*)/, "- @\\1")
-              contributors_section = contributors_section $0 "\n"
-              if ($0 ~ /^## /) in_contributors_section = 0
-              next
-            }
-            { other_sections = other_sections $0 "\n" }
-            END {
-              printf("%s", contributors_section)
-              printf("\n%s", other_sections)
-            }
-          ' extracted_notes.txt > updated_notes.txt
+          CONTRIBUTORS_LINE=$(awk "/^## Contributors/{print NR+1; exit}" extracted_notes.txt)
+          END_LINE=${{ steps.extract_notes.outputs.end_line }}
+          
+          # Define a helper function to remove hyperlinks
+          remove_hyperlinks() {
+            gsub(/\[@([-a-zA-Z0-9_]+)](https:\/\/[^)]*)/, "- @\\1")
+          }
+
+          # Read the contributors section
+          contributors_section=$(awk -v start_line="$CONTRIBUTORS_LINE" -v end_line="$END_LINE" 'NR >= start_line && NR <= end_line { print }' extracted_notes.txt)
+
+          # Remove hyperlinks from the contributors section
+          updated_contributors_section=$(echo "$contributors_section" | awk '{remove_hyperlinks(); print}')
+
+          # Replace the original contributors section with the updated one
+          awk -v start_line="$CONTRIBUTORS_LINE" -v end_line="$END_LINE" -v updated_section="$updated_contributors_section" 'NR==FNR {if (NR == start_line) { print updated_section; skip = 1; } else if (NR == end_line) { skip = 0; next } if (!skip) print; next}' extracted_notes.txt
 
       - name: Format release notes for description
         id: format_notes
         run: |
           # Replace newline characters with appropriate line breaks
-          FORMATTED_NOTES=$(sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' updated_notes.txt)
+          FORMATTED_NOTES=$(sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' extracted_notes.txt)
           echo "Formatted release notes: $FORMATTED_NOTES"
           echo "formatted_notes=$FORMATTED_NOTES" >> $GITHUB_OUTPUT
 
