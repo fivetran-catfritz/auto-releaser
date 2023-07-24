@@ -36,7 +36,10 @@ jobs:
           # Extract the release notes between the line numbers
           awk -v start_line="$START_LINE" -v end_line="$END_LINE" 'NR >= START_LINE && NR <= END_LINE' CHANGELOG.md > extracted_notes.txt
 
-          # Update the contributors section in the extracted notes using awk
+      - name: Update Contributors Section
+        id: update_contributors
+        run: |
+          # Update the contributors section in extracted notes using awk
           awk '
             /## Contributors/ { in_contributors_section = 1 }
             in_contributors_section {
