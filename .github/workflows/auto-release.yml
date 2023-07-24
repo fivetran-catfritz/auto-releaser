@@ -64,7 +64,7 @@ jobs:
           prerelease: 'false'
           repo: ${{ github.repository }}
           token: ${{ secrets.GH_TOKEN }}
-          compare_url: "https://github.com/$repo/compare/${{ steps.current_version.outputs.version }}...$version"
+          compare_url: "https://github.com/${repo}/compare/${{ steps.current_version.outputs.version }}...${version}"
         run: |
           # Concatenate the link to the full changelog with the release description
           description="${description}\n\n**Full Changelog**: ${compare_url}"
@@ -75,6 +75,6 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/$repo/releases" \
             -d "{\"tag_name\": \"$version\",\"target_commitish\": \"$branch\",\"name\": \"$title\",\"body\": \"$description\",\"draft\": $draft,\"prerelease\": $prerelease}")
-            
+
           # Print the response for verification
           echo "Response: $RESPONSE"
