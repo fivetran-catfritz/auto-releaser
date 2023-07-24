@@ -32,20 +32,31 @@ jobs:
           # Use awk to extract the line numbers of the start and end headings
           START_LINE=$(awk "/^# .*${{ steps.new_version.outputs.version }}/{print NR+1; exit}" CHANGELOG.md)
           END_LINE=$(awk "/^# .*${{ steps.current_version.outputs.version }}/{print NR-1; exit}" CHANGELOG.md)
-          echo "start: $START_LINE"
-          echo "end: $END_LINE"
 
           # Extract the release notes between the line numbers
           awk -v start_line="$START_LINE" -v end_line="$END_LINE" 'NR >= START_LINE && NR <= END_LINE' CHANGELOG.md > extracted_notes.txt
 
-          # Update the contributors section in the extracted notes using sed
-          sed -i 's/\[@\([-a-zA-Z0-9_]\+\)](https:\/\/[^)]*)/- @\1/g' extracted_notes.txt
+          # Update the contributors section in the extracted notes using awk
+          awk '
+            /## Contributors/ { in_contributors_section = 1 }
+            in_contributors_section {
+              gsub(/\[@([-a-zA-Z0-9_]+)](https:\/\/[^)]*)/, "- @\\1")
+              contributors_section = contributors_section $0 "\n"
+              if ($0 ~ /^## /) in_contributors_section = 0
+              next
+            }
+            { other_sections = other_sections $0 "\n" }
+            END {
+              printf("%s", contributors_section)
+              printf("\n%s", other_sections)
+            }
+          ' extracted_notes.txt > updated_notes.txt
 
       - name: Format release notes for description
         id: format_notes
         run: |
           # Replace newline characters with appropriate line breaks
-          FORMATTED_NOTES=$(sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' extracted_notes.txt)
+          FORMATTED_NOTES=$(sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' updated_notes.txt)
           echo "Formatted release notes: $FORMATTED_NOTES"
           echo "formatted_notes=$FORMATTED_NOTES" >> $GITHUB_OUTPUT
 
