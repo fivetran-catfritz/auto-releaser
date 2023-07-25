@@ -43,19 +43,20 @@ jobs:
           echo "Formatted release notes: $FORMATTED_NOTES"
           echo "formatted_notes=$FORMATTED_NOTES" >> $GITHUB_OUTPUT
 
-      - name: Get Repository Name
-        id: repo_name
-        run: |
-          # Use basename to get the repository name without the owner
-          REPO_NAME=$(basename "${{ github.repository }}")
-          echo "Repository Name: $REPO_NAME"
-          echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
+      # - name: Get Repository Name
+      #   id: repo_name
+      #   run: |
+      #     # Use basename to get the repository name without the owner
+      #     REPO_NAME=$(basename "${{ github.repository }}")
+      #     echo "Repository Name: $REPO_NAME"
+      #     echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
 
       - name: Create the release
         id: create_release
         env:
           version: ${{ steps.new_version.outputs.version }}
-          title: ${{ steps.new_version.outputs.version }} ${{ steps.repo_name.outputs.repo_name }}
+          title: "${{ steps.new_version.outputs.version }} $(basename '${{ github.repository }}')" 
+          # ${{ steps.repo_name.outputs.repo_name }}
           description: ${{ steps.format_notes.outputs.formatted_notes }}
           branch: 'main'
           draft: 'true'
