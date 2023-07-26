@@ -4,7 +4,7 @@ on:
 
 jobs:
   update:
-    # if: github.event.pull_request.merged
+    if: github.event.pull_request.merged
     runs-on: ubuntu-latest
     name: Create a release
     steps:
@@ -22,7 +22,7 @@ jobs:
         id: current_version
         run: |
           # Get the latest published release using the GitHub REST API
-          CURRENT_VERSION=$(curl -s -H "Authorization: token ${{ secrets.TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/latest" | jq -r '.tag_name')
+          CURRENT_VERSION=$(curl -s -H "Authorization: token ${{ secrets.GH_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/latest" | jq -r '.tag_name')
           echo "Latest published release tag: $CURRENT_VERSION"
           echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
 
@@ -61,7 +61,7 @@ jobs:
           draft: 'true'
           prerelease: 'false'
           repo: ${{ github.repository }}
-          token: ${{ secrets.TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
           compare_url: "https://github.com/${{ github.repository }}/compare/${{ steps.current_version.outputs.version }}...${{ steps.new_version.outputs.version }}"
         run: |
           # Concatenate the link to the full changelog with the release description
